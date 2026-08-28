@@ -1,0 +1,20 @@
+[a]
+a = 4
+ako = 1
+[b]
+balay = 7
+[c]
+can = 1
+canoe = 6
+[k]
+kan = 2
+ko = 5
+[m]
+mo = 2
+[n]
+nimo = 3
+[o]
+og = 8
+open = 3
+[s]
+sa = 9

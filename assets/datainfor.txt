@@ -1,0 +1,8 @@
+here will be stored future audio of each word, which corresponds to the index.txt
+for example 
+
+index.txt:
+
+ako = 1
+
+assets/1.mp3 is the audio for it
