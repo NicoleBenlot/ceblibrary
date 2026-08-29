@@ -1,4 +1,5 @@
+from .corrector import Corrector
 from .decoder import Decoder, ModelNotFoundError
 
-__all__ = ["Decoder", "ModelNotFoundError"]
-__version__ = "0.3.0"
+__all__ = ["Corrector", "Decoder", "ModelNotFoundError"]
+__version__ = "0.4.0"

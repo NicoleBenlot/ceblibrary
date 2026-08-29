@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 class ModelNotFoundError(FileNotFoundError):
@@ -120,6 +120,11 @@ class Decoder:
     @property
     def word_count(self) -> int:
         return len(self._words)
+
+    @property
+    def words(self) -> Tuple[str, ...]:
+        """The model vocabulary (sorted known words), for feeding a Corrector."""
+        return tuple(sorted(self._words))
 
     def available_letters(self) -> List[str]:
         return sorted(self._section_offsets.keys())

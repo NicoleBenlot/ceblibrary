@@ -63,11 +63,27 @@ The `[a]`, `[b]`, … section headers let lookups skip unrelated prefixes instea
 - `get_id(word)` / `has_word(word)` — single-word lookup (case-insensitive)
 - `audio_paths(sentence, assets_dir=None)` → `assets/<id>.mp3` paths
 - `add_word(word, id)` / `save(path=None)` — build and write a sectioned index
-- `model_dir` / `index_path` / `assets_dir` / `word_count` — model metadata
+- `model_dir` / `index_path` / `assets_dir` / `word_count` / `words` — model metadata
+- `Corrector(vocabulary=None, max_distance=None)` / `Corrector.from_decoder(decoder)` — clean up STT output
+- `Corrector.normalize(text)` — vocabulary-free text cleaning (lowercase, punctuation, diacritics, repeated letters, fillers)
+- `Corrector.correct(text)` — normalize + map mistyped/misheard words to the closest known word
+- `Corrector.normalize_tokens` / `correct_tokens` / `suggest(word)` / `is_known(word)`
+
+**STT cleanup pipeline** — STT mishears Cebuano words; normalize/correct before forwarding to downstream AI:
+
+```python
+from ceblibrary import Corrector, Decoder
+
+decoder = Decoder()
+corrector = Corrector.from_decoder(decoder)   # or Corrector() for normalize-only
+cleaned = corrector.correct("uh AKO, balaay.")  # -> "ako balay"
+```
+
+Words too far from the dictionary pass through untouched, leaving the cloud AI to interpret them. `Corrector` is fully independent of `Decoder` — it needs no model unless you want vocabulary-aware correction.
 
 ## Development
 
 ```sh
 pip install pytest
-python -m pytest -q   # 17 tests
+python -m pytest -q   # 33 tests
 ```

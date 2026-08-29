@@ -53,13 +53,23 @@ Section headers (`[a]`, `[b]`, ...) split the word list so lookups can skip unre
 - `decode_strict(sentence)` — like `decode()`, but raises `KeyError` on unknown words.
 - `get_id(word)` / `has_word(word)` — single-word lookup (case-insensitive).
 - `audio_paths(sentence, assets_dir=None)` — resolves `assets/<id>.mp3` paths; defaults to the model's own `assets/`.
-- `model_dir` / `index_path` / `assets_dir` / `word_count` — model metadata properties.
+- `model_dir` / `index_path` / `assets_dir` / `word_count` / `words` — model metadata properties.
 - `add_word(word, id)` / `save(path=None)` — build/add entries, write a sectioned index (defaults to the model's `index.txt`).
 - Lookups are case-insensitive (words lowercased on load).
 
+## Corrector API (STT normalization/correction)
+
+Used between STT and downstream AI: `user -> stt -> normalize/correct -> cloud AI -> Decoder -> audio`.
+
+- `Corrector(vocabulary=None, *, max_distance=None)` — fully independent of Decoder. No vocabulary = normalization only.
+- `Corrector.from_decoder(decoder)` — vocabulary-aware correction using the model's index words (`decoder.words`).
+- `normalize(text)` / `normalize_tokens(text)` — vocabulary-free: lowercase, strip diacritics/punctuation, collapse repeated letters, drop fillers.
+- `correct(text)` / `correct_tokens(text)` — normalize then map near-miss tokens to the closest known word (edit distance); too-far words pass through untouched.
+- `suggest(word, limit=3)` / `is_known(word)` — candidate lookup helpers.
+
 ## Development
 
-- **Test:** `python -m pytest -q` (17 tests; requires `pip install pytest`).
+- **Test:** `python -m pytest -q` (33 tests; requires `pip install pytest`).
 - **Run a quick decode:**
   `python -c "from ceblibrary import Decoder; d=Decoder(); print(d.decode('ako mo open sa balay'))"`
 - No packaging/lint/typecheck/CI configured. `pyproject.toml` is minimal pyproject-only (setuptools legacy backend) for pip installability; package contains only `ceblibrary/` code (no bundled model).
