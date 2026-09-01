@@ -10,8 +10,8 @@ No `models/<name>` subdir. The model files live at the repo root:
 
 ```
 ceblibrary/            <-- the model dir itself (copy this whole repo to use it)
-├── index.txt          word -> audio ID map (sectioned, alphabetical)
-├── assets/            audio assets
+├── assets/            the dict + audio assets
+│   ├── index.txt      word -> audio ID map (sectioned, alphabetical)
 │   ├── audio/         audio files named <id>.mp3
 │   └── datainfor.txt  design note
 ├── ceblibrary/        the Python package (code only)
@@ -25,8 +25,8 @@ ceblibrary/            <-- the model dir itself (copy this whole repo to use it)
 
 ## Model resolution
 
-- `Decoder()` → the repo root (parent of the package) is the default model: `index.txt` and `assets/` are read from there.
-- `Decoder("/path/to/model")` → explicit path to any model dir.
+- `Decoder()` → the repo root (parent of the package) is the default model: `assets/index.txt` and `assets/audio/` are read from there.
+- `Decoder("/path/to/model")` → explicit path to any model dir (index found at `<dir>/index.txt` or `<dir>/assets/index.txt`).
 - `Decoder(index_path=".../index.txt")` → a specific index file.
 - Unknown/missing model raises `ModelNotFoundError`.
 

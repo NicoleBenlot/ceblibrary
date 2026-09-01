@@ -20,12 +20,24 @@ def _default_model_dir() -> str:
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def _index_candidates(model_dir: str):
+    """Possible index locations within a model dir, most specific first.
+
+    The model dir may keep its dictionary either at its own root
+    (`index.txt`) or alongside the audio assets (`assets/index.txt`).
+    """
+    return (
+        os.path.join(model_dir, "index.txt"),
+        os.path.join(model_dir, "assets", "index.txt"),
+    )
+
+
 def _find_model_dir(model: Optional[str]) -> str:
     """Locate the model directory.
 
     Priority:
       1. model is an explicit path to the model directory (checked for
-         index.txt) or to its index.txt file.
+         index.txt or assets/index.txt) or to an index file.
       2. model is None -> default to the package's parent dir (the repo
          root, which is the model).
 
@@ -35,7 +47,9 @@ def _find_model_dir(model: Optional[str]) -> str:
     if model:
         if os.path.isfile(model):
             return os.path.dirname(model)
-        if os.path.isdir(model) and os.path.isfile(os.path.join(model, "index.txt")):
+        if os.path.isdir(model) and any(
+            os.path.isfile(c) for c in _index_candidates(model)
+        ):
             return model
         raise ModelNotFoundError(
             f"Could not locate model {model!r}: not a dir with index.txt "
@@ -43,11 +57,19 @@ def _find_model_dir(model: Optional[str]) -> str:
         )
 
     default = _default_model_dir()
-    if os.path.isfile(os.path.join(default, "index.txt")):
+    if any(os.path.isfile(c) for c in _index_candidates(default)):
         return default
     raise ModelNotFoundError(
-        f"No default model found: expected {os.path.join(default, 'index.txt')}"
+        f"No default model found: expected an index.txt under {default}"
     )
+
+
+def _locate_index(model_dir: str) -> str:
+    """Return the resolved index file path for a model dir."""
+    for candidate in _index_candidates(model_dir):
+        if os.path.isfile(candidate):
+            return candidate
+    return os.path.join(model_dir, "index.txt")
 
 
 class Decoder:
@@ -69,7 +91,7 @@ class Decoder:
             index_file = os.path.abspath(index_path)
         else:
             model_dir = _find_model_dir(model)
-            index_file = os.path.join(model_dir, "index.txt")
+            index_file = _locate_index(model_dir)
 
         self._model_dir = model_dir
         self._index_path = index_file

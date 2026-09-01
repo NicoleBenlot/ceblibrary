@@ -1,0 +1,31 @@
+# nexttask.txt - Future Voice Optimization
+# ceblibrary
+# ============================================================
+
+## High Priority
+- [ ] Test crossfade timing (180ms) with real-world sentences for naturalness
+- [ ] Normalize target_dbfs (-18) against all clips in assets/audio/ for consistency
+- [ ] Add pitch preservation option during crossfade to avoid voice warping
+- [ ] Profile clip durations and pad shorter clips to reduce rhythm variance
+
+## Medium Priority
+- [ ] Implement word-boundary prosody smoothing (intonation carry-over between clips)
+- [ ] Add optional background noise floor or room tone between words
+- [ ] Consider per-speaker normalization profiles (if multiple speakers in corpus)
+- [ ] Evaluate ffmpeg filters for real-time transitions vs pydub offline
+
+## Low Priority / Research
+- [ ] Investigate unit selection / concatenative TTS smoothing (overlap-add)
+- [ ] Explore prosody-aware alignment (forced alignment + pitch interpolation)
+- [ ] Add speech rate adjustment (speed control) without pitch shift
+- [ ] Support WAV output with embedded metadata (word timings, IDs)
+
+## Known Issues
+- Crossfade can cause audible pitch artifacts on very short clips (<300ms)
+- Current trim_silence may cut off breathy endings — tune padding
+- Clip volume variability suggests corpus needs full normalization pass
+
+## Files to Touch
+- demo.py: build_audio(), _normalize(), _trim()
+- assets/audio/: clip trimming, normalization preprocessing
+- ceblibrary/decoder.py: consider adding normalized_clip() helper

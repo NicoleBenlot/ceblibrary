@@ -12,9 +12,9 @@ Given a sentence, `Decoder` maps each word to its audio ID:
 from ceblibrary import Decoder
 
 d = Decoder()                       # repo root is the default model
-d.decode("Can you open a can?")     # -> [1, None, 3, 4, None]
-d.decode_strict("ako mo open sa balay")  # -> [1, 2, 3, 9, 7]
-d.audio_paths("ako mo open sa balay")    # -> [.../assets/audio/1.mp3, .../assets/audio/7.mp3]
+d.decode("pero bisan apan")         # -> [12, 14, 11]
+d.decode_strict("pero bisan apan")  # -> [12, 14, 11]
+d.audio_paths("pero bisan apan")    # -> [.../assets/audio/12.mp3, .../assets/audio/14.mp3, .../assets/audio/11.mp3]
 ```
 
 Unknown words decode to `None`; `decode_strict` raises `KeyError` instead.
@@ -23,8 +23,9 @@ Unknown words decode to `None`; `decode_strict` raises `KeyError` instead.
 
 ```
 ceblibrary/            model directory — copy this whole repo to embed it
-├── index.txt          word -> audio ID map (sectioned, alphabetical)
-├── assets/audio/      audio clips named <id>.mp3
+├── assets/
+│   ├── index.txt      word -> audio ID map (sectioned, alphabetical)
+│   └── audio/         audio clips named <id>.mp3
 ├── ceblibrary/        the Python package (code only)
 ├── tests/
 └── pyproject.toml
@@ -44,16 +45,26 @@ pip install .
 
 The wheel ships **code only** — the small index and audio assets sit at the repo root and are intentionally not bundled, keeping the install tiny. Copy the model directory into the app and point `Decoder` at it (or pull it from a release on demand).
 
+## Demo — hear it before wiring it in
+
+`demo.py` decodes a sentence against the real model (`assets/index.txt` + `assets/audio/`), concatenates the word clips, and plays them. Requires `pydub` and `sounddevice` (plus an audio backend for pydub, e.g. `ffmpeg`).
+
+```sh
+python demo.py "pero bisan apan"              # decode + play
+python demo.py "pero bisan apan" -o out.mp3   # also save an mp3
+```
+
 ## Index format
 
 ```
-[ak]
-ako = 1
-[ba]
-balay = 7
+[bi]
+bisan = 14
+[pa]
+pan = 10
+pero = 12
 ```
 
-The `[ak]`, `[ba]`, … section headers (grouped by each word's first two letters) let lookups skip unrelated prefixes instead of scanning the whole list. Words use ` = ` separators; `#` comments and blank lines are ignored; duplicate words resolve to the last entry.
+The `[bi]`, `[pa]`, … section headers (grouped by each word's first two letters) let lookups skip unrelated prefixes instead of scanning the whole list. Words use ` = ` separators; `#` comments and blank lines are ignored; duplicate words resolve to the last entry.
 
 ## API
 

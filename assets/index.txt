@@ -1,0 +1,45 @@
+[an]
+ang = 1
+
+[ap]
+apan = 11
+
+[ar]
+aron = 9
+
+[bi]
+bisan = 14
+
+[ha]
+hangtud = 16
+
+[ka]
+kay = 6
+
+[ku]
+kung = 7
+
+[ma]
+mao = 8
+
+[ng]
+nga = 5
+
+[og]
+og = 4
+
+[pa]
+para = 10
+
+[pe]
+pero = 12
+
+[sa]
+sa = 2
+samtang = 15
+
+[tu]
+tungod = 13
+
+[ug]
+ug = 3
