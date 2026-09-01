@@ -1,0 +1,8 @@
+{
+  "crossfade_ms": 500,
+  "fade_in_ms": 180,
+  "fade_out_ms": 150,
+  "strip_silence_threshold_dbfs": -100,
+  "strip_silence_padding_ms": 5,
+  "normalize_target_dbfs": -18.0
+}

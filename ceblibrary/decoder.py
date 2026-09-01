@@ -1,9 +1,20 @@
+import json
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class ModelNotFoundError(FileNotFoundError):
     """Raised when the model directory cannot be located."""
+
+
+AUDIO_CONFIG_DEFAULTS: Dict[str, Any] = {
+    "crossfade_ms": 350,
+    "fade_in_ms": 180,
+    "fade_out_ms": 150,
+    "strip_silence_threshold_dbfs": -35,
+    "strip_silence_padding_ms": 5,
+    "normalize_target_dbfs": -18.0,
+}
 
 
 def _default_model_dir() -> str:
@@ -97,9 +108,19 @@ class Decoder:
         self._index_path = index_file
         self._words: Dict[str, int] = {}
         self._section_offsets: Dict[str, int] = {}
+        self._config = self._load_config()
         self._load()
 
     # -- loading -----------------------------------------------------------
+
+    def _load_config(self) -> Dict[str, Any]:
+        """Load audio_config.json from the model dir, falling back to defaults."""
+        cfg = dict(AUDIO_CONFIG_DEFAULTS)
+        config_path = os.path.join(self._model_dir, "audio_config.json")
+        if os.path.isfile(config_path):
+            with open(config_path, "r", encoding="utf-8") as f:
+                cfg.update(json.load(f))
+        return cfg
 
     def _load(self) -> None:
         with open(self._index_path, encoding="utf-8") as f:
@@ -138,6 +159,11 @@ class Decoder:
     @property
     def assets_dir(self) -> str:
         return os.path.join(self._model_dir, "assets", "audio")
+
+    @property
+    def config(self) -> Dict[str, Any]:
+        """Audio configuration loaded from audio_config.json (or defaults)."""
+        return self._config
 
     @property
     def word_count(self) -> int:

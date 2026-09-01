@@ -24,20 +24,28 @@ from pydub import AudioSegment
 from ceblibrary import Decoder
 
 
-def _normalize(clip):
+def _normalize(clip, cfg):
     """Normalize a clip to a consistent target loudness."""
-    target_dbfs = -18.0
-    change = target_dbfs - clip.dBFS
+    change = cfg["normalize_target_dbfs"] - clip.dBFS
     return clip.apply_gain(change)
 
 
-def _trim(clip):
+def _trim(clip, cfg):
     """Remove leading/trailing silence."""
-    return clip.strip_silence(silence_thresh=-40, padding=20)
+    return clip.strip_silence(
+        silence_thresh=cfg["strip_silence_threshold_dbfs"],
+        padding=cfg["strip_silence_padding_ms"],
+    )
 
 
-def build_audio(decoder, sentence, crossfade_ms=180):
+def build_audio(decoder, sentence):
     """Concatenate model audio clips with crossfades and normalized volume."""
+    cfg = decoder.config
+
+    crossfade_ms = cfg["crossfade_ms"]
+    fade_in_ms = cfg["fade_in_ms"]
+    fade_out_ms = cfg["fade_out_ms"]
+
     clips = []
     for word in sentence.split():
         audio_id = decoder.get_id(word)
@@ -48,14 +56,11 @@ def build_audio(decoder, sentence, crossfade_ms=180):
         if not os.path.isfile(path):
             print(f"  [skip] missing clip: {path}")
             continue
-        clips.append(_normalize(_trim(AudioSegment.from_file(path))))
+        clips.append(_normalize(_trim(AudioSegment.from_file(path), cfg), cfg))
         print(f"  {word:8} -> {audio_id}  from {os.path.basename(path)}")
 
     if not clips:
         raise SystemExit("no known words to play; nothing built")
-
-    fade_in_ms = min(crossfade_ms, 100)
-    fade_out_ms = min(crossfade_ms, 80)
 
     combined = clips[0].fade_in(fade_in_ms).fade_out(fade_out_ms)
     for clip in clips[1:]:
