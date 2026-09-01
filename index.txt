@@ -1,20 +1,21 @@
 [a]
 a = 4
+[ak]
 ako = 1
-[b]
+[ba]
 balay = 7
-[c]
+[ca]
 can = 1
 canoe = 6
-[k]
+[ka]
 kan = 2
 ko = 5
-[m]
+[mo]
 mo = 2
-[n]
+[ni]
 nimo = 3
-[o]
+[og]
 og = 8
 open = 3
-[s]
+[sa]
 sa = 9

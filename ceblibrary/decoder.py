@@ -10,7 +10,7 @@ def _default_model_dir() -> str:
     """Return the directory that acts as this model.
 
     The repo root doubles as the model directory: it holds `index.txt`
-    and `assets/`. So the model dir is the parent of the package dir.
+    and `assets/audio/`. So the model dir is the parent of the package dir.
 
     When this repo is copied wholesale into an app's models/ folder (e.g.
     <app>/models/ceblibrary/), the package sits at
@@ -54,8 +54,8 @@ class Decoder:
     """Maps Cebuano words to their audio IDs using a sectioned index.
 
     The repo root doubles as the model directory:
-        index.txt   word -> audio ID map (sectioned, alphabetical)
-        assets/     audio files named <id>.mp3
+        index.txt     word -> audio ID map (sectioned, alphabetical)
+        assets/audio/ audio files named <id>.mp3
 
     Usage mirrors the Vosk / MMS model pattern: copy the whole repo into
     an app's models/ folder, then construct a Decoder pointing at it and
@@ -115,7 +115,7 @@ class Decoder:
 
     @property
     def assets_dir(self) -> str:
-        return os.path.join(self._model_dir, "assets")
+        return os.path.join(self._model_dir, "assets", "audio")
 
     @property
     def word_count(self) -> int:
@@ -176,16 +176,16 @@ class Decoder:
         self._words[word.strip().lower()] = audio_id
 
     def save(self, path: Optional[str] = None) -> None:
-        """Write the index to disk, grouped alphabetically."""
+        """Write the index to disk, grouped by the first 2 letters."""
         out_path = path or self._index_path
 
-        by_letter: Dict[str, List[str]] = {}
+        by_section: Dict[str, List[str]] = {}
         for word, audio_id in sorted(self._words.items()):
-            letter = word[0] if word else "_"
-            by_letter.setdefault(letter, []).append(f"{word} = {audio_id}")
+            section = word[:2] if len(word) >= 2 else word[0] if word else "_"
+            by_section.setdefault(section, []).append(f"{word} = {audio_id}")
 
         with open(out_path, "w", encoding="utf-8") as f:
-            for letter in sorted(by_letter):
-                f.write(f"[{letter}]\n")
-                for entry in by_letter[letter]:
+            for section in sorted(by_section):
+                f.write(f"[{section}]\n")
+                for entry in by_section[section]:
                     f.write(f"{entry}\n")

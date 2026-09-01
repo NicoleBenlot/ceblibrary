@@ -9,23 +9,24 @@ from ceblibrary import Decoder, ModelNotFoundError
 SAMPLE_INDEX = """\
 [a]
 a = 4
+[ak]
 ako = 1
-[b]
+[ba]
 balay = 7
-[c]
+[ca]
 can = 1
 canoe = 6
-[k]
+[ka]
 kan = 2
 ko = 5
-[m]
+[mo]
 mo = 2
-[n]
+[ni]
 nimo = 3
-[o]
+[og]
 og = 8
 open = 3
-[s]
+[sa]
 sa = 9
 """
 
@@ -36,11 +37,11 @@ REPO_MODEL_DIR = os.path.dirname(os.path.dirname(_pkg.__file__))
 
 
 def make_model(tmp_path, index_content=SAMPLE_INDEX):
-    """Create a standalone model dir (index.txt + assets/) in tmp_path."""
+    """Create a standalone model dir (index.txt + assets/audio/) in tmp_path."""
     model_dir = tmp_path / "my-model"
     model_dir.mkdir()
     (model_dir / "index.txt").write_text(index_content, encoding="utf-8")
-    (model_dir / "assets").mkdir()
+    (model_dir / "assets" / "audio").mkdir(parents=True)
     return str(model_dir)
 
 
@@ -59,14 +60,14 @@ class TestDecoderLoading:
         model_dir = make_model(tmp_path)
         decoder = Decoder(model_dir)
         assert decoder.model_dir == model_dir
-        assert decoder.assets_dir == os.path.join(model_dir, "assets")
+        assert decoder.assets_dir == os.path.join(model_dir, "assets", "audio")
 
     def test_available_letters(self, tmp_path):
         decoder = Decoder(make_model(tmp_path))
         letters = decoder.available_letters()
-        assert "a" in letters
-        assert "c" in letters
-        assert "s" in letters
+        assert "ak" in letters
+        assert "ca" in letters
+        assert "sa" in letters
 
 
 class TestDefaultModel:
@@ -82,7 +83,7 @@ class TestDefaultModel:
         if not os.path.isfile(os.path.join(REPO_MODEL_DIR, "index.txt")):
             pytest.skip("no index.txt at repo root")
         decoder = Decoder()
-        assert decoder.assets_dir == os.path.join(REPO_MODEL_DIR, "assets")
+        assert decoder.assets_dir == os.path.join(REPO_MODEL_DIR, "assets", "audio")
 
     def test_missing_model_raises(self):
         with pytest.raises(ModelNotFoundError):
@@ -149,3 +150,14 @@ class TestMutations:
         decoder.save()
         decoder2 = Decoder(model_dir)
         assert decoder2.get_id("newword") == 50
+
+    def test_save_uses_two_letter_sections(self, tmp_path):
+        model_dir = make_model(tmp_path)
+        decoder = Decoder(model_dir)
+        decoder.save()
+        contents = open(os.path.join(model_dir, "index.txt"), encoding="utf-8").read()
+        assert "[ak]" in contents
+        assert "[ba]" in contents
+        assert "[ca]" in contents
+        assert "[ka]" in contents
+        assert "[ko]" in contents

@@ -11,7 +11,8 @@ No `models/<name>` subdir. The model files live at the repo root:
 ```
 ceblibrary/            <-- the model dir itself (copy this whole repo to use it)
 ├── index.txt          word -> audio ID map (sectioned, alphabetical)
-├── assets/            audio files named <id>.mp3
+├── assets/            audio assets
+│   ├── audio/         audio files named <id>.mp3
 │   └── datainfor.txt  design note
 ├── ceblibrary/        the Python package (code only)
 │   ├── __init__.py    exports Decoder, ModelNotFoundError
@@ -38,13 +39,13 @@ The wheel ships **code only** — `index.txt` and `assets/` are at the repo root
 ## Index format
 
 ```
-[a]
+[ak]
 ako = 1
-[b]
+[ba]
 balay = 7
 ```
 
-Section headers (`[a]`, `[b]`, ...) split the word list so lookups can skip unrelated prefixes. Words separated with ` = `. Comments (`#`) and blank lines ignored. Duplicate words: last entry wins.
+Section headers (`[ak]`, `[ba]`, ...), grouped by each word's first two letters, split the word list so lookups can skip unrelated prefixes. Words separated with ` = `. Comments (`#`) and blank lines ignored. Duplicate words: last entry wins.
 
 ## Decoder API
 
@@ -52,7 +53,7 @@ Section headers (`[a]`, `[b]`, ...) split the word list so lookups can skip unre
 - `decode(sentence)` — list of audio IDs per word; unknown words map to `None`.
 - `decode_strict(sentence)` — like `decode()`, but raises `KeyError` on unknown words.
 - `get_id(word)` / `has_word(word)` — single-word lookup (case-insensitive).
-- `audio_paths(sentence, assets_dir=None)` — resolves `assets/<id>.mp3` paths; defaults to the model's own `assets/`.
+- `audio_paths(sentence, assets_dir=None)` — resolves `assets/audio/<id>.mp3` paths; defaults to the model's own `assets/audio/`.
 - `model_dir` / `index_path` / `assets_dir` / `word_count` / `words` — model metadata properties.
 - `add_word(word, id)` / `save(path=None)` — build/add entries, write a sectioned index (defaults to the model's `index.txt`).
 - Lookups are case-insensitive (words lowercased on load).
@@ -69,7 +70,7 @@ Used between STT and downstream AI: `user -> stt -> normalize/correct -> cloud A
 
 ## Development
 
-- **Test:** `python -m pytest -q` (33 tests; requires `pip install pytest`).
+- **Test:** `python -m pytest -q` (34 tests; requires `pip install pytest`).
 - **Run a quick decode:**
   `python -c "from ceblibrary import Decoder; d=Decoder(); print(d.decode('ako mo open sa balay'))"`
 - No packaging/lint/typecheck/CI configured. `pyproject.toml` is minimal pyproject-only (setuptools legacy backend) for pip installability; package contains only `ceblibrary/` code (no bundled model).
