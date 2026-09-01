@@ -21,3 +21,7 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Assets (audio/index) - folder kept, contents not tracked
+assets/*
+!assets/.gitkeep

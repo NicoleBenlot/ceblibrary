@@ -1,0 +1,2 @@
+# Assets live in the model repo but are fetched on demand (Vosk-style).
+# Keep the folder, don't track its contents.
