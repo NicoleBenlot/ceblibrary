@@ -104,4 +104,4 @@ python -m pytest -q   # 39 tests
 
 Tests assert against the **real model assets** (`assets/index.txt` +
 `assets/audio/`) rather than hard-coded words/IDs, so they keep passing
-(and verify consistency) as the dictionary grows.
+(and verify consistency) whether the dictionary grows or shrinks.

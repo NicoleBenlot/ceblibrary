@@ -70,7 +70,7 @@ Used between STT and downstream AI: `user -> stt -> normalize/correct -> cloud A
 
 ## Development
 
-- **Test:** `python -m pytest -q` (39 tests; requires `pip install pytest`). Tests derive expectations from the real `assets/index.txt` + `assets/audio/` via `tests/_assets.py` — assert against that data, never hard-coded words/IDs.
+- **Test:** `python -m pytest -q` (39 tests; requires `pip install pytest`). Tests derive expectations from the real `assets/index.txt` + `assets/audio/` via `tests/_assets.py` — assert against that data, never hard-coded words/IDs. They scale with the dictionary: samples are taken from the live word list and vocab-dependent cases `pytest.skip` if the model is too small.
 - **Run a quick decode:**
   `python -c "from ceblibrary import Decoder; d=Decoder(); print(d.decode('ako mo open sa balay'))"`
 - No packaging/lint/typecheck/CI configured. `pyproject.toml` is minimal pyproject-only (setuptools legacy backend) for pip installability; package contains only `ceblibrary/` code (no bundled model).

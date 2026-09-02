@@ -59,10 +59,12 @@ class TestDefaultModel:
 
 class TestWordLookup:
     def test_has_known_word_case_insensitive(self):
+        if not WORDS:
+            pytest.skip("model vocabulary is empty")
         decoder = Decoder()
-        word = WORDS[0]
-        assert decoder.has_word(word)
-        assert decoder.has_word(word.upper())
+        for word in WORDS[:25]:
+            assert decoder.has_word(word)
+            assert decoder.has_word(word.upper())
 
     def test_has_unknown_word(self):
         assert not Decoder().has_word("notacebuanoword")
@@ -84,36 +86,42 @@ class TestWordLookup:
 class TestDecode:
     def test_simple_sentence(self):
         decoder = Decoder()
-        sentence = f"{WORDS[0]} {WORDS[1]}"
-        expected = [INDEX[WORDS[0]], INDEX[WORDS[1]]]
-        assert decoder.decode(sentence) == expected
+        sample = WORDS[:100]
+        assert decoder.decode(" ".join(sample)) == [INDEX[w] for w in sample]
 
     def test_unknown_words_become_none(self):
+        if not WORDS:
+            pytest.skip("model vocabulary is empty")
         decoder = Decoder()
         word = WORDS[0]
         assert decoder.decode(f"{word} xyz {word}") == [INDEX[word], None, INDEX[word]]
 
     def test_strict_raises_on_unknown(self):
+        if not WORDS:
+            pytest.skip("model vocabulary is empty")
         with pytest.raises(KeyError, match="Unknown word"):
             Decoder().decode_strict(f"{WORDS[0]} xyz")
 
     def test_case_insensitive_decode(self):
+        if not WORDS:
+            pytest.skip("model vocabulary is empty")
         decoder = Decoder()
-        assert decoder.decode(f"{WORDS[0].upper()} {WORDS[1]}") == [
-            INDEX[WORDS[0]],
-            INDEX[WORDS[1]],
-        ]
+        sample = WORDS[:50]
+        noisy = " ".join(w.upper() if i % 2 else w for i, w in enumerate(sample))
+        assert decoder.decode(noisy) == [INDEX[w] for w in sample]
 
 
 class TestAudioPaths:
     def test_model_default_asset_dir(self):
+        if not WORDS:
+            pytest.skip("model vocabulary is empty")
         decoder = Decoder()
-        paths = decoder.audio_paths(f"{WORDS[0]} {WORDS[1]}")
-        assert len(paths) == 2
-        assert paths[0] == os.path.join(AUDIO_DIR, f"{INDEX[WORDS[0]]}.mp3")
-        assert paths[1] == os.path.join(AUDIO_DIR, f"{INDEX[WORDS[1]]}.mp3")
-        assert os.path.isfile(paths[0])
-        assert os.path.isfile(paths[1])
+        sample = WORDS[:50]
+        paths = decoder.audio_paths(" ".join(sample))
+        assert len(paths) == len(sample)
+        for word, path in zip(sample, paths):
+            assert path == os.path.join(AUDIO_DIR, f"{INDEX[word]}.mp3")
+            assert os.path.isfile(path)
 
     def test_every_index_id_has_an_audio_file(self):
         decoder = Decoder()
@@ -122,6 +130,8 @@ class TestAudioPaths:
             assert os.path.isfile(path), f"missing audio for {word!r}: {path}"
 
     def test_audio_path_explicit_dir(self):
+        if not WORDS:
+            pytest.skip("model vocabulary is empty")
         decoder = Decoder()
         audio_id = INDEX[WORDS[0]]
         path = decoder.audio_path(audio_id, AUDIO_DIR)
