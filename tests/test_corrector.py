@@ -1,8 +1,27 @@
+import pytest
+
 from ceblibrary import Corrector, Decoder
 
+from tests._assets import WORDS
 
-REAL_WORDS = ("ang", "apan", "aron", "bisan", "hangtud", "kay", "kung", "mao",
-              "nga", "og", "para", "pero", "sa", "samtang", "tungod", "ug")
+REAL_WORDS = WORDS
+
+
+def _near_miss_pair():
+    """Pick a (real_word, misspelling) from the model vocab that corrects back.
+
+    Misspellings are built by duplicating a word's first letter, then only
+    kept when the Corrector actually maps them home. Data-driven: new vocab
+    words are candidates automatically.
+    """
+    for word in REAL_WORDS:
+        miss = word + word[0]
+        if Corrector(REAL_WORDS).correct(miss) == word:
+            return word, miss
+    pytest.fail(
+        f"no word in the model vocabulary {REAL_WORDS!r} corrects back from a "
+        "suffixed near-miss; update _near_miss_pair() or the vocabulary"
+    )
 
 
 class TestNormalize:
@@ -34,27 +53,36 @@ class TestNormalize:
 class TestCorrection:
     def test_known_words_unchanged(self):
         c = Corrector(REAL_WORDS)
-        assert c.correct("pero bisan") == "pero bisan"
-        assert c.correct("PERO, bisan!") == "pero bisan"
+        w1, w2 = REAL_WORDS[0], REAL_WORDS[1]
+        assert c.correct(f"{w1} {w2}") == f"{w1} {w2}"
+        assert c.correct(f"{w1.upper()}, {w2}!") == f"{w1} {w2}"
 
     def test_auto_correct_near_miss(self):
         c = Corrector(REAL_WORDS)
-        assert c.correct("peroo bisan") == "pero bisan"
-        assert c.correct("pero bisa") == "pero bisan"
+        word, miss = _near_miss_pair()
+        assert c.correct(miss) == word
+        assert c.correct(miss.upper() + "!") == word
 
     def test_unmatched_words_pass_through(self):
         c = Corrector(REAL_WORDS)
-        assert c.correct("pero skyscraper bisan") == "pero skyscraper bisan"
+        word, _ = _near_miss_pair()
+        assert c.correct(f"{word} skyscraper {word}") == f"{word} skyscraper {word}"
 
     def test_is_known(self):
         c = Corrector(REAL_WORDS)
-        assert c.is_known("Bisan")
-        assert not c.is_known("xyz")
+        assert c.is_known(REAL_WORDS[0])
+        assert c.is_known(REAL_WORDS[0].upper())
+        assert not c.is_known("notacebuanoword")
 
-    def test_suggest_ranks_nearest_first(self):
+    def test_suggest_exact_word_first(self):
         c = Corrector(REAL_WORDS)
-        assert c.suggest("bisan")[0] == "bisan"
-        assert c.suggest("peroo")[0] == "pero"
+        word = REAL_WORDS[0]
+        assert c.suggest(word)[0] == word
+
+    def test_suggest_ranks_near_miss_first(self):
+        c = Corrector(REAL_WORDS)
+        word, miss = _near_miss_pair()
+        assert c.suggest(miss)[0] == word
 
     def test_standalone_corrector_without_vocab_only_normalizes(self):
         c = Corrector()
@@ -62,22 +90,25 @@ class TestCorrection:
         assert c.correct("peroo bisan") == "peroo bisan"
 
     def test_from_decoder(self):
-        decoder = Decoder()
-        c = Corrector.from_decoder(decoder)
-        assert c.correct("peroo bisan") == "pero bisan"
-        assert c.correct("pero skyscraper bisan") == "pero skyscraper bisan"
+        c = Corrector.from_decoder(Decoder())
+        word, miss = _near_miss_pair()
+        assert c.correct(miss) == word
+        assert c.correct(f"{word} skyscraper {word}") == f"{word} skyscraper {word}"
 
-    def test_max_distance_override(self):
+    def test_max_distance_override_blocks_correction(self):
         c = Corrector(REAL_WORDS, max_distance=0)
-        assert c.correct("peroo bisan") == "peroo bisan"
+        word, miss = _near_miss_pair()
+        assert c.correct(miss) == miss
+        assert c.correct(f"{word} {miss}") == f"{word} {miss}"
 
 
 class TestDecoderWords:
-    def test_words_property(self):
+    def test_words_property_matches_index(self):
         decoder = Decoder()
         assert decoder.words == REAL_WORDS
 
     def test_words_feeds_corrector(self):
         decoder = Decoder()
         c = Corrector(vocabulary=decoder.words)
-        assert c.correct("PERO bisán") == "pero bisan"
+        w1, w2 = REAL_WORDS[0], REAL_WORDS[1]
+        assert c.correct(f"{w1.upper()} {w2}") == f"{w1} {w2}"

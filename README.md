@@ -68,6 +68,9 @@ The `[bi]`, `[pa]`, … section headers (grouped by each word's first two letter
 
 ## API
 
+Full user's guide with runnable examples, a complete call reference, and a
+pipeline walkthrough: **[docs/API.md](docs/API.md)**.
+
 - `Decoder(model=None, index_path=None)`
 - `decode(sentence)` → list of audio IDs per word (`None` for unknown)
 - `decode_strict(sentence)` → same, but raises `KeyError` on unknown words
@@ -96,5 +99,9 @@ Words too far from the dictionary pass through untouched, leaving the cloud AI t
 
 ```sh
 pip install pytest
-python -m pytest -q   # 34 tests
+python -m pytest -q   # 39 tests
 ```
+
+Tests assert against the **real model assets** (`assets/index.txt` +
+`assets/audio/`) rather than hard-coded words/IDs, so they keep passing
+(and verify consistency) as the dictionary grows.

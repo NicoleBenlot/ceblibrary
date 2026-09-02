@@ -21,7 +21,7 @@ import numpy as np
 import sounddevice as sd
 from pydub import AudioSegment
 
-from ceblibrary import Decoder
+from ceblibrary import Corrector, Decoder
 
 
 def _normalize(clip, cfg):
@@ -94,14 +94,17 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     decoder = Decoder(args.model)
+    corrector = Corrector.from_decoder(decoder)
+    sentence = corrector.correct(args.sentence)
     print(f"model  : {decoder.model_dir}")
     print(f"words  : {decoder.word_count}")
     print(f"audio  : {decoder.assets_dir}")
-    print(f"sentence: {args.sentence!r}")
-    print("decoded audio ids:", decoder.decode(args.sentence))
+    print(f"input   : {args.sentence!r}")
+    print(f"cleaned: {sentence!r}")
+    print("decoded audio ids:", decoder.decode(sentence))
     print("building audio...")
 
-    audio = build_audio(decoder, args.sentence)
+    audio = build_audio(decoder, sentence)
 
     played = False
     if args.play:
