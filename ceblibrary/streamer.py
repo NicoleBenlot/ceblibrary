@@ -217,11 +217,12 @@ class StreamPlayer:
             self._cond.notify_all()
 
     def _consume(self, total: int) -> None:
-        fade_in = int(self._cfg.get("fade_in_ms", 180))
-        fade_out = int(self._cfg.get("fade_out_ms", 150))
-        crossfade = int(self._cfg.get("crossfade_ms", 350))
-        frame_rate = None
-        channels = 1
+        fade_in = int(self._cfg.get("fade_in_ms", 0))
+        fade_out = int(self._cfg.get("fade_out_ms", 0))
+        crossfade = int(self._cfg.get("crossfade_ms", 0))
+        frame_rate = int(self._cfg.get("sample_rate", 48000))
+        channels = int(self._cfg.get("channels", 1))
+        dtype = str(self._cfg.get("dtype", "int16"))
 
         played_any = False
         while self._next_to_play < total:
@@ -233,10 +234,8 @@ class StreamPlayer:
                 break
 
             if value is not _UNKNOWN and value is not _FAILED:
-                frame_rate = frame_rate or getattr(value, "frame_rate", 44100)
-                channels = getattr(value, "channels", 1) or 1
                 try:
-                    self._ensure_sink(frame_rate, channels)
+                    self._ensure_sink(frame_rate, channels, dtype)
                     self._sink.write(self._trimmed(value, fade_in, fade_out, seq))
                     played_any = True
                 except Exception as exc:  # noqa: BLE001 - skip bad clip
@@ -258,10 +257,10 @@ class StreamPlayer:
             logger.warning("Fades skipped for clip %d: %s", seq, exc)
             return segment
 
-    def _ensure_sink(self, frame_rate: int, channels: int) -> None:
+    def _ensure_sink(self, frame_rate: int, channels: int, dtype: str) -> None:
         if not self._sink_open:
             self._sink.open(
-                samplerate=frame_rate, channels=channels, dtype="int16"
+                samplerate=frame_rate, channels=channels, dtype=dtype
             )
             self._sink_open = True
 
@@ -294,6 +293,8 @@ class StreamPlayer:
 
         try:
             segment = self._decode_from_file(path)
+            if segment.sample_width != 2:
+                segment = segment.set_sample_width(2)
             self.loaded_count += 1
         except Exception as exc:  # noqa: BLE001 - graceful degradation
             logger.error("Failed to load audio %s (id=%d): %s", path, audio_id, exc)

@@ -67,6 +67,9 @@ class FakeDecoder:
             "strip_silence_padding_ms": 5,
             "normalize_target_dbfs": -18.0,
             "audio_format": format,
+            "sample_rate": 44100,
+            "channels": 1,
+            "dtype": "int16",
         }
 
     def get_id(self, word):

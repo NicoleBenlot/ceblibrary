@@ -8,13 +8,16 @@ class ModelNotFoundError(FileNotFoundError):
 
 
 AUDIO_CONFIG_DEFAULTS: Dict[str, Any] = {
-    "crossfade_ms": 350,
-    "fade_in_ms": 180,
-    "fade_out_ms": 150,
-    "strip_silence_threshold_dbfs": -35,
+    "crossfade_ms": 500,
+    "fade_in_ms": 0,
+    "fade_out_ms": 0,
+    "strip_silence_threshold_dbfs": -500,
     "strip_silence_padding_ms": 5,
     "normalize_target_dbfs": -18.0,
-    "audio_format": "mp3",
+    "audio_format": "opus",
+    "sample_rate": 48000,
+    "channels": 1,
+    "dtype": "int16",
 }
 
 
