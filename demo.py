@@ -21,7 +21,7 @@ import numpy as np
 import sounddevice as sd
 from pydub import AudioSegment
 
-from ceblibrary import Corrector, Decoder
+from ceblibrary import Corrector, Decoder, StreamPlayer
 
 
 def _normalize(clip, cfg):
@@ -89,6 +89,11 @@ def main(argv=None):
         help="play through the speakers (requires an audio device)",
     )
     parser.add_argument(
+        "--stream",
+        action="store_true",
+        help="use streaming/pipelined playback (lower first-audio latency)",
+    )
+    parser.add_argument(
         "--model", default=None, help="optional model dir (defaults to repo root)"
     )
     args = parser.parse_args(argv)
@@ -102,6 +107,15 @@ def main(argv=None):
     print(f"input   : {args.sentence!r}")
     print(f"cleaned: {sentence!r}")
     print("decoded audio ids:", decoder.decode(sentence))
+
+    if args.stream:
+        player = StreamPlayer(decoder)
+        print("streaming playback...")
+        player.play(sentence)
+        print(f"loaded {player.loaded_count} clips, skipped {player.failed_count}")
+        played = True
+        return
+
     print("building audio...")
 
     audio = build_audio(decoder, sentence)

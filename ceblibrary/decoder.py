@@ -14,6 +14,7 @@ AUDIO_CONFIG_DEFAULTS: Dict[str, Any] = {
     "strip_silence_threshold_dbfs": -35,
     "strip_silence_padding_ms": 5,
     "normalize_target_dbfs": -18.0,
+    "audio_format": "mp3",
 }
 
 
@@ -205,9 +206,14 @@ class Decoder:
 
     # -- audio paths -----------------------------------------------------------
 
+    @property
+    def audio_format(self) -> str:
+        """Audio file extension (without the dot), e.g. 'mp3' or 'opus'."""
+        return str(self._config.get("audio_format", "mp3")).lstrip(".")
+
     def audio_path(self, audio_id: int, assets_dir: Optional[str] = None) -> str:
         assets = assets_dir or self.assets_dir
-        return os.path.join(assets, f"{audio_id}.mp3")
+        return os.path.join(assets, f"{audio_id}.{self.audio_format}")
 
     def audio_paths(self, sentence: str, assets_dir: Optional[str] = None) -> List[str]:
         """Return audio file paths for each known word in the sentence."""

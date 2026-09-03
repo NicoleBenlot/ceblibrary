@@ -52,7 +52,61 @@ The wheel ships **code only** — the small index and audio assets sit at the re
 ```sh
 python demo.py "pero bisan apan"              # decode + play
 python demo.py "pero bisan apan" -o out.mp3   # also save an mp3
+python demo.py --stream "pero bisan apan"     # streaming/pipelined playback
 ```
+
+## Streaming / pipelined playback
+
+`StreamPlayer` plays a sentence with a producer/consumer pipeline instead of
+evaluating, fetching, and joining everything before starting audio:
+
+```text
+sentence
+   |  producer thread: decode word -> id (incremental)
+   v
+prefetch (bounded, LRU-cached)  ->  ordered buffer  ->  playback feeds the device
+```
+
+First audio starts as soon as the first word's clip is decoded and loaded;
+later words are evaluated and prefetched while playback runs. Audio is always
+pushed in sentence order (sequence-numbered), so a faster-loaded later clip
+never overtakes an earlier one.
+
+```python
+from ceblibrary import Decoder, StreamPlayer
+
+player = StreamPlayer(Decoder(), prefetch_limit=4, cache_size=64)
+player.play("pero bisan apan")   # blocks until done; unknown/failed clips skipped
+```
+
+- `prefetch_limit` (default 4): max clips loading concurrently — the prefetch
+  buffer depth.
+- `cache_size` (default 64): LRU cache of recently decoded clips, so repeated
+  words don't reload from disk.
+- `play(sentence)` (blocking) / `play_async(sentence)` (returns a
+  `threading.Event`) / `stop()` (cancel).
+- Missing or unreadable clips are logged and skipped — they never crash the
+  whole sentence.
+- `sink=` overrides the output device (used for testing).
+
+## Shrinking the model: MP3 → Opus
+
+The embedded audio is the biggest part of the model. For speech, Opus at
+48 kbps is roughly **half the size of MP3** at the same perceived quality, with
+no re-recording — just transcode the existing clips (needs ffmpeg):
+
+```sh
+python convert_audio.py --delete-mp3     # *.mp3 -> *.opus, then remove mp3s
+```
+
+Then point the decoder at the new extension in `audio_config.json` (repo root):
+
+```json
+{ "audio_format": "opus" }
+```
+
+The decoder resolves `assets/audio/<id>.<audio_format>`, so the dictionary and
+word→ID mappings are unchanged. (`Decoder.audio_format` defaults to `"mp3"`.)
 
 ## Index format
 
@@ -75,9 +129,12 @@ pipeline walkthrough: **[docs/API.md](docs/API.md)**.
 - `decode(sentence)` → list of audio IDs per word (`None` for unknown)
 - `decode_strict(sentence)` → same, but raises `KeyError` on unknown words
 - `get_id(word)` / `has_word(word)` — single-word lookup (case-insensitive)
-- `audio_paths(sentence, assets_dir=None)` → `assets/audio/<id>.mp3` paths
+- `audio_paths(sentence, assets_dir=None)` → `assets/audio/<id>.<fmt>` paths
+- `audio_format` — the clip extension used (`"mp3"` default; set to `"opus"` in config)
 - `add_word(word, id)` / `save(path=None)` — build and write a sectioned index
 - `model_dir` / `index_path` / `assets_dir` / `word_count` / `words` — model metadata
+- `StreamPlayer(decoder, prefetch_limit=4, cache_size=64, sink=None)` — pipelined playback
+- `StreamPlayer.play(sentence)` / `play_async(sentence)` / `stop()` — run the pipeline
 - `Corrector(vocabulary=None, max_distance=None)` / `Corrector.from_decoder(decoder)` — clean up STT output
 - `Corrector.normalize(text)` — vocabulary-free text cleaning (lowercase, punctuation, diacritics, repeated letters, fillers)
 - `Corrector.correct(text)` — normalize + map mistyped/misheard words to the closest known word
