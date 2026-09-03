@@ -120,7 +120,9 @@ class TestAudioPaths:
         paths = decoder.audio_paths(" ".join(sample))
         assert len(paths) == len(sample)
         for word, path in zip(sample, paths):
-            assert path == os.path.join(AUDIO_DIR, f"{INDEX[word]}.mp3")
+            assert path == os.path.join(
+                AUDIO_DIR, f"{INDEX[word]}.{decoder.audio_format}"
+            )
             assert os.path.isfile(path)
 
     def test_every_index_id_has_an_audio_file(self):
@@ -135,7 +137,7 @@ class TestAudioPaths:
         decoder = Decoder()
         audio_id = INDEX[WORDS[0]]
         path = decoder.audio_path(audio_id, AUDIO_DIR)
-        assert path == os.path.join(AUDIO_DIR, f"{audio_id}.mp3")
+        assert path == os.path.join(AUDIO_DIR, f"{audio_id}.{decoder.audio_format}")
         assert os.path.isfile(path)
 
 

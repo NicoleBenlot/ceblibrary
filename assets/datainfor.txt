@@ -5,4 +5,4 @@ index.txt:
 
 ako = 1
 
-assets/audio/1.mp3 is the audio for it
+assets/audio/1.opus is the audio for it

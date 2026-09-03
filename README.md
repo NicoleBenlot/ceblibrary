@@ -14,7 +14,7 @@ from ceblibrary import Decoder
 d = Decoder()                       # repo root is the default model
 d.decode("pero bisan apan")         # -> [12, 14, 11]
 d.decode_strict("pero bisan apan")  # -> [12, 14, 11]
-d.audio_paths("pero bisan apan")    # -> [.../assets/audio/12.mp3, .../assets/audio/14.mp3, .../assets/audio/11.mp3]
+d.audio_paths("pero bisan apan")    # -> [.../assets/audio/12.opus, .../assets/audio/14.opus, .../assets/audio/11.opus]
 ```
 
 Unknown words decode to `None`; `decode_strict` raises `KeyError` instead.
@@ -25,7 +25,7 @@ Unknown words decode to `None`; `decode_strict` raises `KeyError` instead.
 ceblibrary/            model directory — copy this whole repo to embed it
 ├── assets/
 │   ├── index.txt      word -> audio ID map (sectioned, alphabetical)
-│   └── audio/         audio clips named <id>.mp3
+│   └── audio/         audio clips named <id>.<audio_format>
 ├── ceblibrary/        the Python package (code only)
 ├── tests/
 └── pyproject.toml

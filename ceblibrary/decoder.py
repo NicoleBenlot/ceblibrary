@@ -89,7 +89,7 @@ class Decoder:
 
     The repo root doubles as the model directory:
         index.txt     word -> audio ID map (sectioned, alphabetical)
-        assets/audio/ audio files named <id>.mp3
+        assets/audio/ audio files named <id>.<audio_format>
 
     Usage mirrors the Vosk / MMS model pattern: copy the whole repo into
     an app's models/ folder, then construct a Decoder pointing at it and

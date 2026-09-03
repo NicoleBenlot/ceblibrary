@@ -7,7 +7,7 @@ with runnable examples throughout.
 Flow at a glance:
 
 ```
-user speech -> STT text -> Corrector (normalize/correct) -> Decoder (word -> audio ID) -> <id>.mp3 clips
+user speech -> STT text -> Corrector (normalize/correct) -> Decoder (word -> audio ID) -> <id>.opus clips
 ```
 
 The **repo doubles as the model directory**: copy the whole repo into an app's
@@ -29,7 +29,7 @@ my_app/
     └── ceblibrary/     <-- the whole repo
         ├── assets/
         │   ├── index.txt   word -> audio ID map
-        │   └── audio/      <id>.mp3 clips
+        │   └── audio/      <id>.opus clips
         └── ceblibrary/     the Python package
 ```
 
@@ -84,9 +84,9 @@ d.has_word("PAN")     # -> True        (case-insensitive)
 
 ```python
 paths = d.audio_paths("pero bisan apan")   # skips unknown words
-# -> [.../assets/audio/12.mp3, .../assets/audio/14.mp3, .../assets/audio/11.mp3]
+# -> [.../assets/audio/12.opus, .../assets/audio/14.opus, .../assets/audio/11.opus]
 
-d.audio_path(12)                      # -> .../assets/audio/12.mp3
+d.audio_path(12)                      # -> .../assets/audio/12.opus
 # audio_id is REQUIRED; for unknown words nothing is produced
 
 # override the asset dir (e.g. fetch clips elsewhere):
@@ -95,7 +95,7 @@ d.audio_paths("pero apan", assets_dir="C:/my/clips")
 
 `audio_paths` only returns paths — files may be fetched on demand (clips are
 not bundled with the pip package). Every ID in `index.txt` has a matching
-`<id>.mp3` in `assets/audio/`.
+`<id>.opus` in `assets/audio/`.
 
 ### 2.5 Model metadata & introspection
 
@@ -207,7 +207,7 @@ corrector = Corrector.from_decoder(decoder)
 raw_stt = "uh AKO, balaay."
 cleaned = corrector.correct(raw_stt)      # -> "ako balay"
 ids = decoder.decode(cleaned)             # -> list of audio IDs (None = unknown)
-paths = decoder.audio_paths(cleaned)      # -> paths to <id>.mp3 for known words
+paths = decoder.audio_paths(cleaned)      # -> paths to <id>.opus for known words
 
 print(ids)     # e.g. [24, 118]
 ```

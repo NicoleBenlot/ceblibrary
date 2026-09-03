@@ -12,7 +12,7 @@ No `models/<name>` subdir. The model files live at the repo root:
 ceblibrary/            <-- the model dir itself (copy this whole repo to use it)
 ├── assets/            the dict + audio assets
 │   ├── index.txt      word -> audio ID map (sectioned, alphabetical)
-│   ├── audio/         audio files named <id>.mp3
+│   ├── audio/         audio files named <id>.<audio_format>
 │   └── datainfor.txt  design note
 ├── ceblibrary/        the Python package (code only)
 │   ├── __init__.py    exports Decoder, ModelNotFoundError
@@ -53,7 +53,7 @@ Section headers (`[ak]`, `[ba]`, ...), grouped by each word's first two letters,
 - `decode(sentence)` — list of audio IDs per word; unknown words map to `None`.
 - `decode_strict(sentence)` — like `decode()`, but raises `KeyError` on unknown words.
 - `get_id(word)` / `has_word(word)` — single-word lookup (case-insensitive).
-- `audio_paths(sentence, assets_dir=None)` — resolves `assets/audio/<id>.mp3` paths; defaults to the model's own `assets/audio/`.
+- `audio_paths(sentence, assets_dir=None)` — resolves `assets/audio/<id>.<audio_format>` paths; defaults to the model's own `assets/audio/`.
 - `model_dir` / `index_path` / `assets_dir` / `word_count` / `words` — model metadata properties.
 - `add_word(word, id)` / `save(path=None)` — build/add entries, write a sectioned index (defaults to the model's `index.txt`).
 - Lookups are case-insensitive (words lowercased on load).

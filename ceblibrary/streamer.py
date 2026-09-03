@@ -36,6 +36,8 @@ from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Optional
 
+import numpy as np
+
 logger = logging.getLogger("ceblibrary.streamer")
 
 _UNKNOWN = object()  # sentinel: word had no audio id (skipped)
@@ -382,13 +384,17 @@ class SounddeviceSink:
         chunk = max(1, bytes_per_frame * 1024)  # ~1024 frames per drain
         nbytes = (len(self._buffer) // chunk) * chunk
         if nbytes:
-            self._stream.write(self._buffer[:nbytes])
+            self._stream.write(
+                np.frombuffer(self._buffer[:nbytes], dtype=np.int16)
+            )
             self._buffer = self._buffer[nbytes:]
 
     def close(self) -> None:
         if self._stream is not None:
             if self._buffer:
-                self._stream.write(self._buffer)
+                self._stream.write(
+                    np.frombuffer(self._buffer, dtype=np.int16)
+                )
                 self._buffer = b""
             self._stream.stop()
             self._stream.close()

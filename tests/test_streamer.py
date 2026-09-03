@@ -255,9 +255,9 @@ class TestCaching:
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         for aid in ids:
-            (audio_dir / f"{aid}.mp3").write_bytes(b"fake")
+            (audio_dir / f"{aid}.opus").write_bytes(b"fake")
 
-        decoder = FakeDecoder({f"w{aid}": aid for aid in ids}, format="mp3")
+        decoder = FakeDecoder({f"w{aid}": aid for aid in ids}, format="opus")
         decoder.assets_dir = str(audio_dir)
         player = StreamPlayer(decoder, prefetch_limit=4, cache_size=cache_size)
         decoded = []
@@ -295,8 +295,8 @@ class TestCaching:
         # Only id 9 has a file; id 8 does not -> skipped, rest continues.
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
-        (audio_dir / "9.mp3").write_bytes(b"fake")  # id 8 file absent
-        decoder = FakeDecoder({"w8": 8, "w9": 9}, format="mp3")
+        (audio_dir / "9.opus").write_bytes(b"fake")  # id 8 file absent
+        decoder = FakeDecoder({"w8": 8, "w9": 9}, format="opus")
         decoder.assets_dir = str(audio_dir)
         player = StreamPlayer(decoder, prefetch_limit=4, cache_size=64)
         sink = RecordingSink()
